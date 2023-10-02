@@ -3,6 +3,7 @@ import {
   Button,
   Container,
   CssBaseline,
+  Drawer,
   LinearProgress,
   Stack,
   ThemeProvider,
@@ -18,6 +19,8 @@ import { NoteInput } from "./components/note-input";
 
 const App = () => {
   const systemColorScheme = useSystemColorScheme();
+
+  const [settingsOpen, setSettingsOpen] = useState(false);
 
   const theme = useMemo(
     () => createTheme(systemColorScheme),
@@ -62,6 +65,10 @@ const App = () => {
           >
             <Typography variant="enormous">{currentNoteTuple[0]}</Typography>
 
+            <Button size="large" onClick={() => setSettingsOpen(true)}>
+              Settings
+            </Button>
+
             <Button size="large" onClick={reset}>
               Skip
             </Button>
@@ -87,6 +94,16 @@ const App = () => {
           </Stack>
         </Container>
       </main>
+
+      <Drawer
+        anchor={"left"}
+        open={settingsOpen}
+        onClose={() => setSettingsOpen(false)}
+      >
+        <Box sx={{ width: 300, padding: 2 }}>
+          hey
+        </Box>
+      </Drawer>
     </ThemeProvider>
   );
 };
