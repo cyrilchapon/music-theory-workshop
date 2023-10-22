@@ -1,8 +1,8 @@
-export const _simpleBaseNotes = ["A", "B", "C", "D", "E", "F", "G"] as const;
+const _simpleBaseNotes = ["A", "B", "C", "D", "E", "F", "G"] as const;
 export type SimpleBaseNote = (typeof _simpleBaseNotes)[number];
 export const simpleBaseNotes = _simpleBaseNotes as unknown as SimpleBaseNote[];
 
-export const _complexBaseNotes = [
+const _complexBaseNotes = [
   "A",
   "A#",
   "B",
@@ -27,22 +27,11 @@ export type NoteTuple<BaseNote extends SimpleBaseNote | ComplexBaseNote> = [
   right: BaseNote
 ];
 
-export const simpleNth = (nth: number) =>
-  simpleBaseNotes.map<NoteTuple<SimpleBaseNote>>((note, index, arr) => [
-    note,
-    arr[(index + Math.round(nth)) % 7],
-  ]);
+const _simpleShifts = [1, 2, 3, 4, 5, 6, 7] as const;
+export type SimpleShift = (typeof _simpleShifts)[number];
+export const simpleShifts = _simpleShifts as unknown as SimpleShift[];
 
-export const simpleAscSeconds = simpleNth(1);
-export const simpleAscThirds = simpleNth(2);
-export const simpleAscQuarts = simpleNth(3);
-export const simpleAscQuints = simpleNth(4);
-export const simpleAscSixths = simpleNth(5);
-export const simpleAscSeventh = simpleNth(6);
-
-export const simpleDescSeconds = simpleNth(-1);
-export const simpleDescThirds = simpleNth(-2);
-export const simpleDescQuarts = simpleNth(-3);
-export const simpleDescQuints = simpleNth(-4);
-export const simpleDescSixths = simpleNth(-5);
-export const simpleDescSeventh = simpleNth(-6);
+export const simpleNth = (nth: number) => (note: SimpleBaseNote) => {
+  const nthIndex = (simpleBaseNotes.indexOf(note) + Math.round(nth)) % 7;
+  return simpleBaseNotes.at(nthIndex)!;
+};

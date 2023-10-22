@@ -4,8 +4,8 @@ import { draw, shuffle } from "radash";
 export const useDraw = <T>(
   items: T[],
   excludeCurrent = false
-): [T, () => void] => {
-  const [randomPicked, setRandomPicked] = useState<T>(draw(items)!);
+): [T | null, () => void] => {
+  const [randomPicked, setRandomPicked] = useState<T | null>(draw(items));
 
   return [
     randomPicked,

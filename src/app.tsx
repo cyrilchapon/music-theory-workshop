@@ -1,109 +1,47 @@
-import {
-  Box,
-  Button,
-  Container,
-  CssBaseline,
-  Drawer,
-  LinearProgress,
-  Stack,
-  ThemeProvider,
-  Typography,
-} from "@mui/material";
+import { Box, Container, CssBaseline, Drawer } from "@mui/material";
+import { ThemeProvider } from "@mui/material/styles";
 import { useSystemColorScheme } from "./hooks/system-color-scheme";
 import createTheme from "./style/theme";
-import { useCallback, useMemo, useState } from "react";
-import { useDraw, useShuffle } from "./hooks/random";
-import { useAnimationFrameProgress } from "./hooks/animation-frame";
-import { SimpleBaseNote, simpleBaseNotes, simpleAscQuints } from "./note";
-import { NoteInput } from "./components/note-input";
+import { useMemo, useState } from "react";
+import { Root } from "./components/root";
+import { Navbar } from "./components/navbar";
+import { SettingsProvider } from "./context/settings";
+import { SettingsDrawerBox } from "./components/settings-drawer-box";
 
 const App = () => {
   const systemColorScheme = useSystemColorScheme();
-
-  const [settingsOpen, setSettingsOpen] = useState(false);
 
   const theme = useMemo(
     () => createTheme(systemColorScheme),
     [systemColorScheme]
   );
 
-  const [shuffledBaseNotes, reshuffle] = useShuffle(simpleBaseNotes);
-  const [currentNoteTuple, redraw] = useDraw(simpleAscQuints, true);
-
-  const [answerNote, setAnswerNote] = useState<SimpleBaseNote | null>(null);
-
-  const [progressing, nextProgress, startNext, stopNext] =
-    useAnimationFrameProgress(() => {
-      reset();
-    });
-
-  const reset = useCallback(() => {
-    setAnswerNote(null);
-    reshuffle();
-    redraw();
-    stopNext();
-  }, [setAnswerNote, reshuffle, redraw, stopNext]);
-
-  const submitAnswer = useCallback(
-    (note: SimpleBaseNote) => {
-      setAnswerNote(note);
-      startNext(note != null && note === currentNoteTuple[1] ? 200 : 2000);
-    },
-    [setAnswerNote, startNext, currentNoteTuple]
-  );
+  const [settingsOpen, setSettingsOpen] = useState(false);
 
   return (
     <ThemeProvider theme={theme}>
-      <CssBaseline enableColorScheme />
+      <SettingsProvider>
+        <CssBaseline enableColorScheme />
 
-      <main>
-        <Container>
-          <Stack
-            alignItems={"center"}
-            justifyContent={"flex-start"}
-            spacing={3}
-          >
-            <Typography variant="enormous">{currentNoteTuple[0]}</Typography>
+        <Navbar
+          onDrawerToggle={() => setSettingsOpen((prev) => !prev)}
+          component={"nav"}
+        />
 
-            <Button size="large" onClick={() => setSettingsOpen(true)}>
-              Settings
-            </Button>
-
-            <Button size="large" onClick={reset}>
-              Skip
-            </Button>
-
-            <Box alignSelf={"stretch"}>
-              <LinearProgress
-                variant="determinate"
-                value={progressing ? nextProgress : 0}
-                sx={{
-                  "& .MuiLinearProgress-bar": {
-                    transition: "none",
-                  },
-                }}
-              />
-            </Box>
-
-            <NoteInput
-              onInput={submitAnswer}
-              baseNotes={shuffledBaseNotes}
-              answeredNote={answerNote}
-              expectedNote={currentNoteTuple[1]}
-            />
-          </Stack>
-        </Container>
-      </main>
-
-      <Drawer
-        anchor={"left"}
-        open={settingsOpen}
-        onClose={() => setSettingsOpen(false)}
-      >
-        <Box sx={{ width: 300, padding: 2 }}>
-          hey
+        <Box component={"main"} pt={{ xs: 2, md: 3 }}>
+          <Container>
+            <Root />
+          </Container>
         </Box>
-      </Drawer>
+
+        <Drawer
+          anchor={"right"}
+          open={settingsOpen}
+          onClose={() => setSettingsOpen(false)}
+        >
+          <SettingsDrawerBox sx={{ width: 300, padding: 2 }} />
+        </Drawer>
+      </SettingsProvider>
     </ThemeProvider>
   );
 };
