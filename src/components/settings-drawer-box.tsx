@@ -27,6 +27,7 @@ import {
   AlteratedSettingsInterval,
   SimpleSettingsInterval,
 } from "../state/_default";
+import { intervalsAtom } from "../state/board";
 
 type SettingsDrawerBoxProps<
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -39,6 +40,9 @@ export const SettingsDrawerBox: FunctionComponent<SettingsDrawerBoxProps> = (
   const settings = useAtomValue(settingsAtom);
   const switchMode = useSetAtom(switchModeAtom);
   const toggleInterval = useSetAtom(toggleIntervalAtom);
+  const activeIntervals = useAtomValue(intervalsAtom);
+
+  const canDisable = activeIntervals.length > 1;
 
   const handleToggleInterval = useCallback(
     (intervalName: string) => {
@@ -87,6 +91,7 @@ export const SettingsDrawerBox: FunctionComponent<SettingsDrawerBoxProps> = (
                       interval={interval}
                       onToggle={handleToggleInterval}
                       checked={interval.activated}
+                      disabled={interval.activated && !canDisable}
                     />
                   </Grid>
                 </Grid>
@@ -107,6 +112,7 @@ export const SettingsDrawerBox: FunctionComponent<SettingsDrawerBoxProps> = (
                     <AlteratedSettingsIntervalButton
                       interval={interval}
                       onToggle={handleToggleInterval}
+                      canDisable={canDisable}
                     />
                   </Grid>
                 </Grid>
@@ -139,11 +145,12 @@ export type AlteratedSettingsIntervalButtonProps = Omit<
 > & {
   onToggle: (intervalName: IntervalName) => void;
   interval: AlteratedSettingsInterval;
+  canDisable: boolean;
 };
 
 export const AlteratedSettingsIntervalButton: FunctionComponent<
   AlteratedSettingsIntervalButtonProps
-> = ({ onToggle, interval, ...props }) => (
+> = ({ onToggle, interval, canDisable, ...props }) => (
   <ToggleButtonGroup
     {...props}
     size="small"
@@ -156,20 +163,23 @@ export const AlteratedSettingsIntervalButton: FunctionComponent<
       onToggle(intervalName);
     }}
   >
-    {(Object.entries(interval.qs) as [Interval["q"], boolean][]).map(([q]) => (
-      <ToggleButton
-        key={q}
-        value={`${interval.num}${q}`}
-        sx={{
-          fontVariant: "initial",
-          textTransform: "none",
-          width: q === "P" ? 100 : 50,
-        }}
-      >
-        {/* TODO: write correctly */}
-        {qualitiesAbbrWords[q as keyof typeof qualitiesAbbrWords]}
-        {/* <ArrowUpwardIcon /> */}
-      </ToggleButton>
-    ))}
+    {(Object.entries(interval.qs) as [Interval["q"], boolean][]).map(
+      ([q, activated]) => (
+        <ToggleButton
+          key={q}
+          value={`${interval.num}${q}`}
+          sx={{
+            fontVariant: "initial",
+            textTransform: "none",
+            width: q === "P" ? 100 : 50,
+          }}
+          disabled={activated && !canDisable}
+        >
+          {/* TODO: write correctly */}
+          {qualitiesAbbrWords[q as keyof typeof qualitiesAbbrWords]}
+          {/* <ArrowUpwardIcon /> */}
+        </ToggleButton>
+      )
+    )}
   </ToggleButtonGroup>
 );

@@ -1,8 +1,9 @@
 import { atom } from "jotai";
 import { atomWithStorage } from "jotai/utils";
 import { Interval as TonalInterval } from "tonal";
-import { drawIntervalAtom, drawNoteAtom } from "./board";
+import { drawIntervalAtom, drawNoteAtom, intervalsAtom } from "./board";
 import { Settings, settingsDefaultValue } from "./_default";
+import { UnreachableCaseError } from "ts-essentials";
 
 export const settingsAtom = atomWithStorage<Settings>(
   "settings",
@@ -20,6 +21,8 @@ export const switchModeAtom = atom(null, (_get, set) => {
 export const toggleIntervalAtom = atom(
   null,
   (_get, set, intervalName: string) => {
+    const { length: activeIntervalsCount } = _get(intervalsAtom);
+
     const interval = TonalInterval.get(intervalName);
 
     if (interval.empty) {
@@ -27,7 +30,9 @@ export const toggleIntervalAtom = atom(
     }
 
     set(settingsAtom, (prevSettings) => {
-      const currentIntervalIndex = prevSettings[prevSettings.mode].intervals.findIndex(
+      const { mode } = prevSettings;
+
+      const currentIntervalIndex = prevSettings[mode].intervals.findIndex(
         (i) => i.num === interval.num
       );
 
@@ -35,43 +40,77 @@ export const toggleIntervalAtom = atom(
         throw new Error(`Interval ${intervalName} not in settings`);
       }
 
-      const updatedSettings: Settings =
-        prevSettings.mode === "simple"
-          ? {
-              ...prevSettings,
-              simple: {
-                intervals: [
-                  ...prevSettings.simple.intervals.slice(0, currentIntervalIndex),
-                  {
-                    ...prevSettings.simple.intervals[currentIntervalIndex],
-                    activated:
-                      !prevSettings.simple.intervals[currentIntervalIndex].activated,
-                  },
-                  ...prevSettings.simple.intervals.slice(currentIntervalIndex + 1),
-                ],
-              }
-            }
-          : {
-              ...prevSettings,
-              alterated: {
-                intervals: [
-                  ...prevSettings.alterated.intervals.slice(0, currentIntervalIndex),
-                  {
-                    ...prevSettings.alterated.intervals[currentIntervalIndex],
-                    qs: {
-                      ...prevSettings.alterated.intervals[currentIntervalIndex].qs,
-                      [interval.q]:
-                        !prevSettings.alterated.intervals[currentIntervalIndex].qs[
-                          interval.q
-                        ],
-                    },
-                  },
-                  ...prevSettings.alterated.intervals.slice(currentIntervalIndex + 1),
-                ],
-              }
-            };
+      switch (mode) {
+        case "simple": {
+          // If about to deactivate the last one, cancel
+          if (
+            activeIntervalsCount <= 1 &&
+            prevSettings.simple.intervals[currentIntervalIndex].activated
+          ) {
+            return prevSettings;
+          }
 
-      return updatedSettings;
+          const updatedSettings: Settings = {
+            ...prevSettings,
+            simple: {
+              intervals: [
+                ...prevSettings.simple.intervals.slice(0, currentIntervalIndex),
+                {
+                  ...prevSettings.simple.intervals[currentIntervalIndex],
+                  activated:
+                    !prevSettings.simple.intervals[currentIntervalIndex]
+                      .activated,
+                },
+                ...prevSettings.simple.intervals.slice(
+                  currentIntervalIndex + 1
+                ),
+              ],
+            },
+          };
+
+          return updatedSettings;
+        }
+        case "alterated": {
+          // If about to deactivate the last one, cancel
+          if (
+            activeIntervalsCount <= 1 &&
+            prevSettings.alterated.intervals[currentIntervalIndex].qs[
+              interval.q
+            ]
+          ) {
+            return prevSettings;
+          }
+
+          const updatedSettings: Settings = {
+            ...prevSettings,
+            alterated: {
+              intervals: [
+                ...prevSettings.alterated.intervals.slice(
+                  0,
+                  currentIntervalIndex
+                ),
+                {
+                  ...prevSettings.alterated.intervals[currentIntervalIndex],
+                  qs: {
+                    ...prevSettings.alterated.intervals[currentIntervalIndex]
+                      .qs,
+                    [interval.q]:
+                      !prevSettings.alterated.intervals[currentIntervalIndex]
+                        .qs[interval.q],
+                  },
+                },
+                ...prevSettings.alterated.intervals.slice(
+                  currentIntervalIndex + 1
+                ),
+              ],
+            },
+          };
+          return updatedSettings;
+        }
+        default: {
+          throw new UnreachableCaseError(mode);
+        }
+      }
     });
 
     set(drawNoteAtom);
