@@ -4,7 +4,6 @@ import {
   Grid,
   LinearProgress,
   Stack,
-  // Tooltip,
   Typography,
 } from "@mui/material";
 import { FunctionComponent, useCallback, useState } from "react";
@@ -147,21 +146,6 @@ const IntervalExpression: FunctionComponent<{
   interval: Interval;
   mode: NoteMode;
 }> = ({ mode, interval }) => (
-  // <Tooltip
-  //   title={`${intervalsWords[interval.num as keyof typeof intervalsWords]} ${
-  //     qualitiesWords[interval.q as keyof typeof qualitiesAbbrWords]
-  //   }`}
-  // >
-  //   <Typography
-  //     component={"abbr"}
-  //     fontWeight={"bold"}
-  //     sx={{ textDecoration: "underline dotted" }}
-  //   >
-  //     {interval.num}
-  //     {<>&nbsp;</>}
-  //     {qualitiesAbbrWords[interval.q as keyof typeof qualitiesAbbrWords]}
-  //   </Typography>
-  // </Tooltip>
   <Typography component="span" fontWeight={"bold"}>
     {intervalsWords[interval.num as keyof typeof intervalsWords]}
     {mode === "alterated" ? (

@@ -2,23 +2,17 @@ import { atom } from "jotai";
 import { atomWithStorage } from "jotai/utils";
 import { Interval as TonalInterval } from "tonal";
 import { drawIntervalAtom, drawNoteAtom } from "./board";
-import {
-  Settings,
-  alteratedSettingsDefaultValue,
-  settingsDefaultValue,
-  simpleSettingsDefaultValue,
-} from "./_default";
+import { Settings, settingsDefaultValue } from "./_default";
 
 export const settingsAtom = atomWithStorage<Settings>(
   "settings",
   settingsDefaultValue
 );
 export const switchModeAtom = atom(null, (_get, set) => {
-  set(settingsAtom, (prevSettings) =>
-    prevSettings.mode === "simple"
-      ? alteratedSettingsDefaultValue
-      : simpleSettingsDefaultValue
-  );
+  set(settingsAtom, (prevSettings) => ({
+    ...prevSettings,
+    mode: prevSettings.mode === "simple" ? "alterated" : "simple",
+  }));
 
   set(drawNoteAtom);
   set(drawIntervalAtom);
@@ -33,7 +27,7 @@ export const toggleIntervalAtom = atom(
     }
 
     set(settingsAtom, (prevSettings) => {
-      const currentIntervalIndex = prevSettings.intervals.findIndex(
+      const currentIntervalIndex = prevSettings[prevSettings.mode].intervals.findIndex(
         (i) => i.num === interval.num
       );
 
@@ -45,32 +39,36 @@ export const toggleIntervalAtom = atom(
         prevSettings.mode === "simple"
           ? {
               ...prevSettings,
-              intervals: [
-                ...prevSettings.intervals.slice(0, currentIntervalIndex),
-                {
-                  ...prevSettings.intervals[currentIntervalIndex],
-                  activated:
-                    !prevSettings.intervals[currentIntervalIndex].activated,
-                },
-                ...prevSettings.intervals.slice(currentIntervalIndex + 1),
-              ],
+              simple: {
+                intervals: [
+                  ...prevSettings.simple.intervals.slice(0, currentIntervalIndex),
+                  {
+                    ...prevSettings.simple.intervals[currentIntervalIndex],
+                    activated:
+                      !prevSettings.simple.intervals[currentIntervalIndex].activated,
+                  },
+                  ...prevSettings.simple.intervals.slice(currentIntervalIndex + 1),
+                ],
+              }
             }
           : {
               ...prevSettings,
-              intervals: [
-                ...prevSettings.intervals.slice(0, currentIntervalIndex),
-                {
-                  ...prevSettings.intervals[currentIntervalIndex],
-                  qs: {
-                    ...prevSettings.intervals[currentIntervalIndex].qs,
-                    [interval.q]:
-                      !prevSettings.intervals[currentIntervalIndex].qs[
-                        interval.q
-                      ],
+              alterated: {
+                intervals: [
+                  ...prevSettings.alterated.intervals.slice(0, currentIntervalIndex),
+                  {
+                    ...prevSettings.alterated.intervals[currentIntervalIndex],
+                    qs: {
+                      ...prevSettings.alterated.intervals[currentIntervalIndex].qs,
+                      [interval.q]:
+                        !prevSettings.alterated.intervals[currentIntervalIndex].qs[
+                          interval.q
+                        ],
+                    },
                   },
-                },
-                ...prevSettings.intervals.slice(currentIntervalIndex + 1),
-              ],
+                  ...prevSettings.alterated.intervals.slice(currentIntervalIndex + 1),
+                ],
+              }
             };
 
       return updatedSettings;

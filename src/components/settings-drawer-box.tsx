@@ -70,7 +70,7 @@ export const SettingsDrawerBox: FunctionComponent<SettingsDrawerBoxProps> = (
 
         <Stack spacing={2}>
           {settings.mode === "simple"
-            ? settings.intervals.map((interval) => (
+            ? settings.simple.intervals.map((interval) => (
                 <Grid container alignItems={"center"} key={interval.num}>
                   <Grid item xs={4}>
                     <FormLabel component="legend">
@@ -91,7 +91,7 @@ export const SettingsDrawerBox: FunctionComponent<SettingsDrawerBoxProps> = (
                   </Grid>
                 </Grid>
               ))
-            : settings.intervals.map((interval) => (
+            : settings.alterated.intervals.map((interval) => (
                 <Grid container alignItems={"center"} key={interval.num}>
                   <Grid item xs={4}>
                     <FormLabel component="legend">
