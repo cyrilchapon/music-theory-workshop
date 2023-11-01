@@ -1,4 +1,5 @@
 import { atom } from "jotai";
+import { atomWithStorage } from "jotai/utils";
 import { Interval as TonalInterval } from "tonal";
 import { drawIntervalAtom, drawNoteAtom } from "./board";
 import {
@@ -8,7 +9,10 @@ import {
   simpleSettingsDefaultValue,
 } from "./_default";
 
-export const settingsAtom = atom<Settings>(settingsDefaultValue);
+export const settingsAtom = atomWithStorage<Settings>(
+  "settings",
+  settingsDefaultValue
+);
 export const switchModeAtom = atom(null, (_get, set) => {
   set(settingsAtom, (prevSettings) =>
     prevSettings.mode === "simple"
@@ -45,7 +49,8 @@ export const toggleIntervalAtom = atom(
                 ...prevSettings.intervals.slice(0, currentIntervalIndex),
                 {
                   ...prevSettings.intervals[currentIntervalIndex],
-                  activated: !prevSettings.intervals[currentIntervalIndex].activated,
+                  activated:
+                    !prevSettings.intervals[currentIntervalIndex].activated,
                 },
                 ...prevSettings.intervals.slice(currentIntervalIndex + 1),
               ],

@@ -76,3 +76,18 @@ export const alteratedSettingsDefaultValue: AlteratedSettings = {
 
 export const settingsDefaultValue: Settings =
   simpleSettingsDefaultValue as Settings;
+
+export const getSettingsDefaultValue = (key: string) => {
+  const item = localStorage.getItem(key)
+  if (item == null) {
+    return settingsDefaultValue
+  }
+
+  try {
+    const parsedSettings = JSON.parse(item) as Settings
+    return parsedSettings
+  } catch (err) {
+    console.error(err)
+    return settingsDefaultValue
+  }
+}
