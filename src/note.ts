@@ -1,37 +1,95 @@
-const _simpleBaseNotes = ["A", "B", "C", "D", "E", "F", "G"] as const;
-export type SimpleBaseNote = (typeof _simpleBaseNotes)[number];
-export const simpleBaseNotes = _simpleBaseNotes as unknown as SimpleBaseNote[];
+import { Note, NoNote, Interval, NoInterval } from "@tonaljs/core";
+import { draw } from "radash";
+import { Range, NoteName, Note as TonalNote } from "tonal";
+import { NoteMode } from "./state/_default";
 
-const _complexBaseNotes = [
-  "A",
-  "A#",
-  "B",
-  "C",
-  "C#",
-  "D",
-  "D#",
-  "E",
-  "F",
-  "F#",
-  "G",
-  "G#",
-] as const;
-export type ComplexBaseNote = (typeof _complexBaseNotes)[number];
-export const complexBaseNotes =
-  _complexBaseNotes as unknown as ComplexBaseNote[];
+// Asserters
+export const isNote = (maybeNote: Note | NoNote): maybeNote is Note =>
+  !maybeNote.empty;
+export const isInterval = (
+  maybeInterval: Interval | NoInterval
+): maybeInterval is Interval => !maybeInterval.empty;
 
-export type BaseNote = SimpleBaseNote | ComplexBaseNote;
+// Base notes
+const baseNoteNames: NoteName[] = Range.chromatic(["A1", "G#2"], {
+  sharps: true,
+  pitchClass: true,
+});
 
-export type NoteTuple<BaseNote extends SimpleBaseNote | ComplexBaseNote> = [
-  left: BaseNote,
-  right: BaseNote
-];
+const simpleBaseNoteNames: NoteName[] = Range.chromatic(["A1", "G#2"], {
+  sharps: false,
+  pitchClass: true,
+});
 
-const _simpleShifts = [1, 2, 3, 4, 5, 6, 7] as const;
-export type SimpleShift = (typeof _simpleShifts)[number];
-export const simpleShifts = _simpleShifts as unknown as SimpleShift[];
+const _baseNotes = baseNoteNames.map(TonalNote.get).filter(isNote);
+const _simpleNotes = simpleBaseNoteNames.map(TonalNote.get).filter(isNote);
 
-export const simpleNth = (nth: number) => (note: SimpleBaseNote) => {
-  const nthIndex = (simpleBaseNotes.indexOf(note) + Math.round(nth)) % 7;
-  return simpleBaseNotes.at(nthIndex)!;
+export const alteratedNotes = _baseNotes;
+export const simpleNotes = _simpleNotes.filter((note) => note.alt === 0);
+
+// Draw
+const _drawNote = (baseNotes: Note[]): Note[] => {
+  const note = draw(baseNotes);
+  if (note == null) {
+    return [];
+  }
+
+  const enharmonic = TonalNote.get(TonalNote.enharmonic(note.name));
+
+  return [
+    note,
+    ...(enharmonic.empty || enharmonic == note ? [] : [enharmonic]),
+  ];
+};
+
+export const drawNote = (baseNotes: Note[]): Note | null => {
+  const noteWithEnharmonics = _drawNote(baseNotes);
+  return draw(noteWithEnharmonics);
+};
+
+// Input
+export const simpleInputNotes = simpleNotes;
+export type InputNoteGroup = {
+  letter: NoteName;
+  notes: Note[];
+};
+export const alteratedInputNotes = simpleNotes.map<InputNoteGroup>((note) => ({
+  letter: note.letter,
+  notes: [
+    TonalNote.get(`${note.letter}bb`) as Note,
+    TonalNote.get(`${note.letter}b`) as Note,
+    TonalNote.get(`${note.letter}`) as Note,
+    TonalNote.get(`${note.letter}#`) as Note,
+    TonalNote.get(`${note.letter}##`) as Note,
+  ],
+}));
+
+// Expectation
+export const simplify = (note: Note): Note => {
+  const simpleNote = TonalNote.get(note.letter);
+
+  if (!isNote(simpleNote)) {
+    throw new TypeError(`Cannot simplify ${note.name}`);
+  }
+
+  return simpleNote;
+};
+
+export const getExpectedNote = (
+  note: Note,
+  interval: Interval,
+  mode: NoteMode
+) => {
+  const expectedAlteratedNote = TonalNote.get(
+    TonalNote.transpose(note.name, interval)
+  );
+
+  if (!isNote(expectedAlteratedNote)) {
+    throw new TypeError(`Cannot transpose ${note.name} by ${interval.name}`);
+  }
+
+  const expectedNote =
+    mode === "simple" ? simplify(expectedAlteratedNote) : expectedAlteratedNote;
+
+  return expectedNote;
 };

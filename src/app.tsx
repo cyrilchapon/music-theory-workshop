@@ -5,7 +5,6 @@ import createTheme from "./style/theme";
 import { useMemo, useState } from "react";
 import { Root } from "./components/root";
 import { Navbar } from "./components/navbar";
-import { SettingsProvider } from "./context/settings";
 import { SettingsDrawerBox } from "./components/settings-drawer-box";
 
 const App = () => {
@@ -20,28 +19,26 @@ const App = () => {
 
   return (
     <ThemeProvider theme={theme}>
-      <SettingsProvider>
-        <CssBaseline enableColorScheme />
+      <CssBaseline enableColorScheme />
 
-        <Navbar
-          onDrawerToggle={() => setSettingsOpen((prev) => !prev)}
-          component={"nav"}
-        />
+      <Navbar
+        onDrawerToggle={() => setSettingsOpen((prev) => !prev)}
+        component={"nav"}
+      />
 
-        <Box component={"main"} pt={{ xs: 2, md: 3 }}>
-          <Container>
-            <Root />
-          </Container>
-        </Box>
+      <Box component={"main"} pt={{ xs: 2, md: 3 }}>
+        <Container>
+          <Root />
+        </Container>
+      </Box>
 
-        <Drawer
-          anchor={"right"}
-          open={settingsOpen}
-          onClose={() => setSettingsOpen(false)}
-        >
-          <SettingsDrawerBox sx={{ width: 300, padding: 2 }} />
-        </Drawer>
-      </SettingsProvider>
+      <Drawer
+        anchor={"right"}
+        open={settingsOpen}
+        onClose={() => setSettingsOpen(false)}
+      >
+        <SettingsDrawerBox sx={{ width: 400, padding: 2 }} />
+      </Drawer>
     </ThemeProvider>
   );
 };

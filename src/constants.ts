@@ -1,11 +1,26 @@
-export const intervals = [
-  "seconde",
-  "tierce",
-  "quarte",
-  "quinte",
-  "sixte",
-  "septième",
-];
+export const intervalsWords = {
+  1: "unison",
+  2: "seconde",
+  3: "tierce",
+  4: "quarte",
+  5: "quinte",
+  6: "sixte",
+  7: "septième",
+  8: "octave",
+};
 
-export const getSignName = (sign: 1 | -1) =>
-  sign === 1 ? "ascendante" : "descendante";
+export const qualitiesAbbrWords = {
+  d: "dim",
+  m: "min",
+  P: "jus",
+  M: "maj",
+  A: "aug",
+};
+
+export const qualitiesWords = {
+  d: "diminuée",
+  m: "mineure",
+  P: "juste",
+  M: "majeure",
+  A: "augmentée",
+};

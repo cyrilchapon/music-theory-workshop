@@ -1,36 +1,58 @@
-import { Box, Button, LinearProgress, Stack, Typography } from "@mui/material";
-import { useCallback, useState } from "react";
-import { useDraw, useShuffle } from "../hooks/random";
-import { SimpleBaseNote, simpleBaseNotes } from "../note";
+import {
+  Box,
+  Button,
+  Grid,
+  LinearProgress,
+  Stack,
+  // Tooltip,
+  Typography,
+} from "@mui/material";
+import { FunctionComponent, useCallback, useState } from "react";
 import {
   UseRequestAnimationFrameCallback,
   useRequestAnimationFrame,
 } from "../hooks/animation-frame";
-import { useSettingsShifts } from "../hooks/use-settings-shifts";
 import { NoteInput } from "./note-input";
-import Grid2 from "@mui/material/Unstable_Grid2/Grid2";
+import { Note, Interval } from "@tonaljs/core";
+import {
+  intervalsWords,
+  qualitiesAbbrWords,
+  qualitiesWords,
+} from "../constants";
+import { useAtomValue, useSetAtom } from "jotai";
+import {
+  currentIntervalAtom,
+  currentNoteAtom,
+  drawIntervalAtom,
+  drawNoteAtom,
+} from "../state/board";
+import { getExpectedNote } from "../note";
+import { settingsAtom } from "../state/settings";
+import { NoteMode } from "../state/_default";
 
 export const Root = () => {
-  const shifts = useSettingsShifts();
+  const { mode } = useAtomValue(settingsAtom);
+  const currentNote = useAtomValue(currentNoteAtom);
+  const currentInterval = useAtomValue(currentIntervalAtom);
 
-  const [shuffledBaseNotes, reshuffle] = useShuffle(simpleBaseNotes);
-  const [_currentNote, redrawNote] = useDraw(simpleBaseNotes, true);
-  const currentNote = _currentNote!;
-  const [currentShift, redrawShift] = useDraw(shifts);
+  const redrawNote = useSetAtom(drawNoteAtom);
+  const redrawInterval = useSetAtom(drawIntervalAtom);
 
-  const expectedNote =
-    currentShift != null ? currentShift.getNth(currentNote) : null;
+  const expectedNote = getExpectedNote(currentNote, currentInterval, mode);
 
-  const [answerNote, setAnswerNote] = useState<SimpleBaseNote | null>(null);
+  const redraw = useCallback(() => {
+    redrawNote();
+    redrawInterval();
+  }, [redrawNote, redrawInterval]);
+
+  const [answerNote, setAnswerNote] = useState<Note | null>(null);
 
   const [nextDuration, setNextDuration] = useState(2000);
 
   const reset = useCallback(() => {
     setAnswerNote(null);
-    reshuffle();
-    redrawNote();
-    redrawShift();
-  }, [setAnswerNote, reshuffle, redrawNote, redrawShift]);
+    redraw();
+  }, [setAnswerNote, redraw]);
 
   const [nextProgress, setNextProgress] = useState(0);
   const handleTick = useCallback<UseRequestAnimationFrameCallback>(
@@ -52,10 +74,9 @@ export const Root = () => {
   const progressing = start && !pause;
 
   const handleSubmitAnswer = useCallback(
-    (note: SimpleBaseNote) => {
+    (note: Note) => {
       // stopNext();
       setAnswerNote(note);
-      console.log("submit");
       setNextDuration(note != null && note === expectedNote ? 200 : 2000);
       startNext();
     },
@@ -69,30 +90,31 @@ export const Root = () => {
 
   return (
     <Stack alignItems={"center"} justifyContent={"flex-start"} spacing={3}>
-      <Grid2 container alignItems={"center"} spacing={{ xs: 2, md: 4 }}>
-        <Grid2 xs={12} md={6}>
+      <Grid
+        container
+        alignItems={"center"}
+        spacing={{ xs: 2, md: 4 }}
+        alignSelf={"stretch"}
+      >
+        <Grid item xs={12} md={6}>
           <Typography textAlign={{ xs: "center", md: "right" }}>
-            <>
-              {currentShift != null ? (
-                <>
-                  Quelle est la <strong>{currentShift.name}</strong> de
-                </>
-              ) : (
-                <>Pas d'intervalle sélectionné</>
-              )}
-            </>
+            Quelle est la
+            <br />
+            <IntervalExpression mode={mode} interval={currentInterval} />
+            &nbsp;de
           </Typography>
-        </Grid2>
+        </Grid>
 
-        <Grid2 xs={12} md={6}>
+        <Grid item xs={12} md={6}>
           <Typography
             textAlign={{ xs: "center", md: "left" }}
             variant="enormous"
+            fontFamily="monospace"
           >
-            {currentNote}
+            {currentNote.name}
           </Typography>
-        </Grid2>
-      </Grid2>
+        </Grid>
+      </Grid>
 
       <Button size="large" onClick={handleSkip}>
         Skip
@@ -113,7 +135,6 @@ export const Root = () => {
       {expectedNote != null ? (
         <NoteInput
           onInput={handleSubmitAnswer}
-          baseNotes={shuffledBaseNotes}
           answeredNote={answerNote}
           expectedNote={expectedNote}
         />
@@ -121,3 +142,33 @@ export const Root = () => {
     </Stack>
   );
 };
+
+const IntervalExpression: FunctionComponent<{
+  interval: Interval;
+  mode: NoteMode;
+}> = ({ mode, interval }) => (
+  // <Tooltip
+  //   title={`${intervalsWords[interval.num as keyof typeof intervalsWords]} ${
+  //     qualitiesWords[interval.q as keyof typeof qualitiesAbbrWords]
+  //   }`}
+  // >
+  //   <Typography
+  //     component={"abbr"}
+  //     fontWeight={"bold"}
+  //     sx={{ textDecoration: "underline dotted" }}
+  //   >
+  //     {interval.num}
+  //     {<>&nbsp;</>}
+  //     {qualitiesAbbrWords[interval.q as keyof typeof qualitiesAbbrWords]}
+  //   </Typography>
+  // </Tooltip>
+  <Typography component="span" fontWeight={"bold"}>
+    {intervalsWords[interval.num as keyof typeof intervalsWords]}
+    {mode === "alterated" ? (
+      <>
+        &nbsp;
+        {qualitiesWords[interval.q as keyof typeof qualitiesAbbrWords]}
+      </>
+    ) : null}
+  </Typography>
+);

@@ -1,18 +1,32 @@
-import { FunctionComponent } from "react";
-import { SettingsShift, useSettings } from "../context/settings";
+import { FunctionComponent, useCallback } from "react";
+import {
+  settingsAtom,
+  switchModeAtom,
+  toggleIntervalAtom,
+} from "../state/settings";
 import {
   Box,
   BoxProps,
+  Divider,
+  FormControlLabel,
   FormLabel,
+  Grid,
   Stack,
+  Switch,
+  SwitchProps,
   ToggleButton,
   ToggleButtonGroup,
+  ToggleButtonGroupProps,
 } from "@mui/material";
-import { intervals } from "../constants";
-import { capitalize } from "radash";
-import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
-import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
-import Grid2 from "@mui/material/Unstable_Grid2/Grid2";
+// import { capitalize } from "radash";
+// import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
+import { intervalsWords, qualitiesAbbrWords } from "../constants";
+import { Interval, IntervalName } from "@tonaljs/core";
+import { useAtomValue, useSetAtom } from "jotai";
+import {
+  AlteratedSettingsInterval,
+  SimpleSettingsInterval,
+} from "../state/_default";
 
 type SettingsDrawerBoxProps<
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -22,59 +36,140 @@ type SettingsDrawerBoxProps<
 export const SettingsDrawerBox: FunctionComponent<SettingsDrawerBoxProps> = (
   props
 ) => {
-  const [shifts, setShifts] = useSettings();
+  const settings = useAtomValue(settingsAtom);
+  const switchMode = useSetAtom(switchModeAtom);
+  const toggleInterval = useSetAtom(toggleIntervalAtom);
+
+  const handleToggleInterval = useCallback(
+    (intervalName: string) => {
+      toggleInterval(intervalName);
+    },
+    [toggleInterval]
+  );
+
+  const handleModeChange = useCallback(() => {
+    switchMode();
+  }, [switchMode]);
 
   return (
     <Box {...props}>
       <Stack spacing={2}>
-        {shifts.map((shift, shiftIndex) => (
-          <Grid2 container alignItems={"center"} key={intervals[shiftIndex]}>
-            <Grid2 xs={4}>
-              <FormLabel component="legend">
-                {capitalize(intervals[shiftIndex])}
-              </FormLabel>
-            </Grid2>
+        <Box>
+          <FormControlLabel
+            control={
+              <Switch
+                checked={settings.mode === "alterated"}
+                onChange={handleModeChange}
+              />
+            }
+            label="Altérations"
+          />
+        </Box>
 
-            <Grid2 xs={8}>
-              <ToggleButtonGroup
-                size="small"
-                value={[
-                  ...(shift.asc ? [`${intervals[shiftIndex]}-asc`] : []),
-                  ...(shift.desc ? [`${intervals[shiftIndex]}-desc`] : []),
-                ]}
-                onChange={(val) => {
-                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                  const shiftLongCode = (val.currentTarget as any)
-                    .value as string;
-                  const [shiftCode, _shiftSide] = shiftLongCode.split("-");
-                  const shiftSide = _shiftSide as "asc" | "desc";
+        <Divider />
 
-                  setShifts((prevShifts) => {
-                    const currentShiftIndex = intervals.indexOf(shiftCode);
-                    const updatedCurrentShift: SettingsShift = {
-                      ...prevShifts[currentShiftIndex],
-                      [shiftSide]: !prevShifts[currentShiftIndex][shiftSide],
-                    };
-                    return [
-                      ...prevShifts.slice(0, currentShiftIndex),
-                      updatedCurrentShift,
-                      ...prevShifts.slice(currentShiftIndex + 1),
-                    ];
-                  });
-                }}
-              >
-                <ToggleButton value={`${intervals[shiftIndex]}-asc`}>
-                  <ArrowUpwardIcon />
-                </ToggleButton>
+        <Stack spacing={2}>
+          {settings.mode === "simple"
+            ? settings.intervals.map((interval) => (
+                <Grid container alignItems={"center"} key={interval.num}>
+                  <Grid item xs={4}>
+                    <FormLabel component="legend">
+                      {
+                        intervalsWords[
+                          interval.num as keyof typeof intervalsWords
+                        ]
+                      }
+                    </FormLabel>
+                  </Grid>
 
-                <ToggleButton value={`${intervals[shiftIndex]}-desc`}>
-                  <ArrowDownwardIcon />
-                </ToggleButton>
-              </ToggleButtonGroup>
-            </Grid2>
-          </Grid2>
-        ))}
+                  <Grid item xs={8}>
+                    <SimpleSettingsIntervalSwitch
+                      interval={interval}
+                      onToggle={handleToggleInterval}
+                      checked={interval.activated}
+                    />
+                  </Grid>
+                </Grid>
+              ))
+            : settings.intervals.map((interval) => (
+                <Grid container alignItems={"center"} key={interval.num}>
+                  <Grid item xs={4}>
+                    <FormLabel component="legend">
+                      {
+                        intervalsWords[
+                          interval.num as keyof typeof intervalsWords
+                        ]
+                      }
+                    </FormLabel>
+                  </Grid>
+
+                  <Grid item xs={8}>
+                    <AlteratedSettingsIntervalButton
+                      interval={interval}
+                      onToggle={handleToggleInterval}
+                    />
+                  </Grid>
+                </Grid>
+              ))}
+        </Stack>
       </Stack>
     </Box>
   );
 };
+
+export type SimpleSettingsIntervalSwitchProps = Omit<
+  SwitchProps,
+  "onChange"
+> & {
+  onToggle: (intervalName: IntervalName) => void;
+  interval: SimpleSettingsInterval;
+};
+export const SimpleSettingsIntervalSwitch: FunctionComponent<
+  SimpleSettingsIntervalSwitchProps
+> = ({ onToggle, interval, ...props }) => (
+  <Switch
+    onChange={onToggle.bind(null, `${interval.num}${interval.q}`)}
+    {...props}
+  />
+);
+
+export type AlteratedSettingsIntervalButtonProps = Omit<
+  ToggleButtonGroupProps,
+  "value" | "onChange"
+> & {
+  onToggle: (intervalName: IntervalName) => void;
+  interval: AlteratedSettingsInterval;
+};
+
+export const AlteratedSettingsIntervalButton: FunctionComponent<
+  AlteratedSettingsIntervalButtonProps
+> = ({ onToggle, interval, ...props }) => (
+  <ToggleButtonGroup
+    {...props}
+    size="small"
+    value={Object.entries(interval.qs)
+      .filter(([, activated]) => activated)
+      .map(([q]) => `${interval.num}${q}`)}
+    onChange={(val) => {
+      const intervalName = (val.currentTarget as HTMLButtonElement).value;
+
+      onToggle(intervalName);
+    }}
+  >
+    {(Object.entries(interval.qs) as [Interval["q"], boolean][]).map(([q]) => (
+      <ToggleButton
+        key={q}
+        value={`${interval.num}${q}`}
+        sx={{
+          fontVariant: "initial",
+          textTransform: "none",
+          width: q === "P" ? 100 : 50,
+        }}
+      >
+        {/* TODO: write correctly */}
+        {qualitiesAbbrWords[q as keyof typeof qualitiesAbbrWords]}
+        {/* <ArrowUpwardIcon /> */}
+      </ToggleButton>
+    ))}
+  </ToggleButtonGroup>
+);
