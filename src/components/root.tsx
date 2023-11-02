@@ -1,11 +1,5 @@
-import {
-  Box,
-  Button,
-  Grid,
-  LinearProgress,
-  Stack,
-  Typography,
-} from "@mui/material";
+import { Box, Button, LinearProgress, Stack, Typography } from "@mui/material";
+import Grid2 from "@mui/material/Unstable_Grid2/Grid2";
 import { FunctionComponent, useCallback, useState } from "react";
 import {
   UseRequestAnimationFrameCallback,
@@ -89,31 +83,31 @@ export const Root = () => {
 
   return (
     <Stack alignItems={"center"} justifyContent={"flex-start"} spacing={3}>
-      <Grid
+      <Grid2
         container
         alignItems={"center"}
         spacing={{ xs: 2, md: 4 }}
         alignSelf={"stretch"}
       >
-        <Grid item xs={12} md={6}>
-          <Typography textAlign={{ xs: "center", md: "right" }}>
+        <Grid2 xs={6}>
+          <Typography textAlign={"right"}>
             Quelle est la
             <br />
             <IntervalExpression mode={mode} interval={currentInterval} />
             &nbsp;de
           </Typography>
-        </Grid>
+        </Grid2>
 
-        <Grid item xs={12} md={6}>
+        <Grid2 xs={6}>
           <Typography
-            textAlign={{ xs: "center", md: "left" }}
+            textAlign={"left"}
             variant="enormous"
             fontFamily="monospace"
           >
             {currentNote.name}
           </Typography>
-        </Grid>
-      </Grid>
+        </Grid2>
+      </Grid2>
 
       <Button size="large" onClick={handleSkip}>
         Skip

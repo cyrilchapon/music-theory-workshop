@@ -10,7 +10,6 @@ import {
   Divider,
   FormControlLabel,
   FormLabel,
-  Grid,
   Stack,
   Switch,
   SwitchProps,
@@ -18,6 +17,7 @@ import {
   ToggleButtonGroup,
   ToggleButtonGroupProps,
 } from "@mui/material";
+import Grid2 from "@mui/material/Unstable_Grid2/Grid2";
 // import { capitalize } from "radash";
 // import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
 import { intervalsWords, qualitiesAbbrWords } from "../constants";
@@ -75,8 +75,8 @@ export const SettingsDrawerBox: FunctionComponent<SettingsDrawerBoxProps> = (
         <Stack spacing={2}>
           {settings.mode === "simple"
             ? settings.simple.intervals.map((interval) => (
-                <Grid container alignItems={"center"} key={interval.num}>
-                  <Grid item xs={4}>
+                <Grid2 container alignItems={"center"} key={interval.num}>
+                  <Grid2 xs={4}>
                     <FormLabel component="legend">
                       {
                         intervalsWords[
@@ -84,21 +84,21 @@ export const SettingsDrawerBox: FunctionComponent<SettingsDrawerBoxProps> = (
                         ]
                       }
                     </FormLabel>
-                  </Grid>
+                  </Grid2>
 
-                  <Grid item xs={8}>
+                  <Grid2 xs={8}>
                     <SimpleSettingsIntervalSwitch
                       interval={interval}
                       onToggle={handleToggleInterval}
                       checked={interval.activated}
                       disabled={interval.activated && !canDisable}
                     />
-                  </Grid>
-                </Grid>
+                  </Grid2>
+                </Grid2>
               ))
             : settings.alterated.intervals.map((interval) => (
-                <Grid container alignItems={"center"} key={interval.num}>
-                  <Grid item xs={4}>
+                <Grid2 container alignItems={"center"} key={interval.num}>
+                  <Grid2 xs={4}>
                     <FormLabel component="legend">
                       {
                         intervalsWords[
@@ -106,16 +106,16 @@ export const SettingsDrawerBox: FunctionComponent<SettingsDrawerBoxProps> = (
                         ]
                       }
                     </FormLabel>
-                  </Grid>
+                  </Grid2>
 
-                  <Grid item xs={8}>
+                  <Grid2 xs={8}>
                     <AlteratedSettingsIntervalButton
                       interval={interval}
                       onToggle={handleToggleInterval}
                       canDisable={canDisable}
                     />
-                  </Grid>
-                </Grid>
+                  </Grid2>
+                </Grid2>
               ))}
         </Stack>
       </Stack>

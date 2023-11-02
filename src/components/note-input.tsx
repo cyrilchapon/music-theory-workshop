@@ -2,11 +2,11 @@ import {
   Button,
   ButtonGroup,
   ButtonProps,
-  Grid,
   Stack,
   useMediaQuery,
   useTheme,
 } from "@mui/material";
+import Grid2 from "@mui/material/Unstable_Grid2/Grid2";
 import { Note } from "@tonaljs/core";
 import { FunctionComponent } from "react";
 import { alteratedInputNotes, simpleInputNotes } from "../note";
@@ -30,16 +30,16 @@ export const NoteInput = ({
 
   return (
     <Stack spacing={2} alignItems="center">
-      <Grid container justifyContent={"center"} spacing={2}>
+      <Grid2 container justifyContent={"center"} spacing={2}>
         {mode === "simple"
           ? simpleInputNotes.map((note) => (
-              <Grid
-                item
+              <Grid2
                 container
                 key={note.letter}
                 xs={4}
                 sm={3}
                 md={"auto"}
+                spacing={0}
                 justifyContent={"center"}
               >
                 <NoteButton
@@ -49,10 +49,10 @@ export const NoteInput = ({
                   onClick={answeredNote == null ? onInput : null}
                   size={isMobile ? "small" : "large"}
                 />
-              </Grid>
+              </Grid2>
             ))
           : alteratedInputNotes.map((noteGroup) => (
-              <Grid item key={noteGroup.letter} xs={12} sm={6} md={4} lg={3}>
+              <Grid2 key={noteGroup.letter} xs={12} sm={6} md={4} lg={3}>
                 <ButtonGroup size="small" fullWidth>
                   {noteGroup.notes.map((note) => (
                     <NoteButton
@@ -65,9 +65,9 @@ export const NoteInput = ({
                     />
                   ))}
                 </ButtonGroup>
-              </Grid>
+              </Grid2>
             ))}
-      </Grid>
+      </Grid2>
     </Stack>
   );
 };
@@ -107,13 +107,16 @@ export const NoteButton: FunctionComponent<NoteButtonProps> = ({
           ? // Answer was right?
             expectedNote === answeredNote
             ? "success"
+            : // Are notes enharmonics ?
+            expectedNote.height === answeredNote.height
+            ? "warning"
             : "error"
           : // Answer was right ?
           expectedNote === answeredNote
           ? "primary"
           : // Current note was the expected one ?
           expectedNote === note
-          ? "warning"
+          ? "expectedSuccess"
           : "primary"
         : "primary"
     }
