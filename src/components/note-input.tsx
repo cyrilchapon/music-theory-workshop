@@ -113,12 +113,12 @@ export const NoteButton: FunctionComponent<NoteButtonProps> = ({
             : "error"
           : // Answer was right ?
           expectedNote === answeredNote
-          ? "primary"
+          ? "neutral"
           : // Current note was the expected one ?
           expectedNote === note
-          ? "expectedSuccess"
-          : "primary"
-        : "primary"
+          ? "success"
+          : "neutral"
+        : "neutral"
     }
     sx={{ textTransform: "none", fontFamily: "monospace" }}
   >

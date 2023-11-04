@@ -70,7 +70,7 @@ export const Root = () => {
     (note: Note) => {
       // stopNext();
       setAnswerNote(note);
-      setNextDuration(note != null && note === expectedNote ? 200 : 2000);
+      setNextDuration(note != null && note === expectedNote ? 500 : 2000);
       startNext();
     },
     [setAnswerNote, startNext, setNextDuration, expectedNote]
@@ -109,14 +109,23 @@ export const Root = () => {
         </Grid2>
       </Grid2>
 
-      <Button size="large" onClick={handleSkip}>
-        Skip
+      <Button size="large" color="neutral" variant="text" onClick={handleSkip}>
+        Passer
       </Button>
 
       <Box alignSelf={"stretch"}>
         <LinearProgress
           variant="determinate"
           value={progressing ? nextProgress : 0}
+          color={
+            progressing
+              ? answerNote === expectedNote
+                ? "success"
+                : answerNote?.height === expectedNote.height
+                ? "warning"
+                : "error"
+              : "neutral"
+          }
           sx={{
             "& .MuiLinearProgress-bar": {
               transition: "none",

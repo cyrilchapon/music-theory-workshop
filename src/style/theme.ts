@@ -4,11 +4,11 @@ import {
   createTheme as _createTheme,
   responsiveFontSizes,
 } from "@mui/material";
-import { teal } from "@mui/material/colors";
+import { amber, deepOrange, grey, teal } from "@mui/material/colors";
 
 declare module "@mui/material/styles" {
   interface Palette {
-    expectedSuccess: Palette["primary"];
+    neutral: Palette["primary"];
   }
 
   interface TypographyVariants {
@@ -21,13 +21,19 @@ declare module "@mui/material/styles" {
   }
 
   interface PaletteOptions {
-    expectedSuccess?: PaletteOptions["primary"];
+    neutral?: PaletteOptions["primary"];
   }
 }
 
 declare module "@mui/material/Button" {
   interface ButtonPropsColorOverrides {
-    expectedSuccess: true;
+    neutral: true;
+  }
+}
+
+declare module "@mui/material/LinearProgress" {
+  interface LinearProgressPropsColorOverrides {
+    neutral: true;
   }
 }
 
@@ -42,6 +48,16 @@ export const createTheme = (mode: PaletteMode) => {
   let theme = _createTheme({
     palette: {
       mode,
+      success: {
+        main: teal[400],
+        light: teal[300],
+        dark: teal[500],
+      },
+      error: {
+        main: deepOrange[400],
+        light: deepOrange[300],
+        dark: deepOrange[500],
+      },
     },
     typography: {
       enormous: {
@@ -63,11 +79,17 @@ export const createTheme = (mode: PaletteMode) => {
 
   const derivatedThemeOptions: ThemeOptions = {
     palette: {
-      expectedSuccess: theme.palette.augmentColor({
+      neutral: theme.palette.augmentColor({
+        color: mode === "light" ? { main: grey[800] } : { main: grey[200] },
+        name: "neutral",
+      }),
+      warning: theme.palette.augmentColor({
         color: {
-          main: teal[400],
+          main: amber[500],
+          light: amber[400],
+          dark: amber[600],
         },
-        name: "expectedSuccess",
+        name: "warning",
       }),
     },
   };
