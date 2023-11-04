@@ -37,7 +37,7 @@ const App = () => {
         open={settingsOpen}
         onClose={() => setSettingsOpen(false)}
       >
-        <SettingsDrawerBox sx={{ width: 400, padding: 2 }} />
+        <SettingsDrawerBox sx={{ width: 350, padding: 2 }} />
       </Drawer>
     </ThemeProvider>
   );

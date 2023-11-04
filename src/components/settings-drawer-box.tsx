@@ -108,7 +108,7 @@ export const SettingsDrawerBox: FunctionComponent<SettingsDrawerBoxProps> = (
                     </FormLabel>
                   </Grid2>
 
-                  <Grid2 xs={8}>
+                  <Grid2 xs={8} spacing={0}>
                     <AlteratedSettingsIntervalButton
                       interval={interval}
                       onToggle={handleToggleInterval}
@@ -162,6 +162,7 @@ export const AlteratedSettingsIntervalButton: FunctionComponent<
 
       onToggle(intervalName);
     }}
+    fullWidth
   >
     {(Object.entries(interval.qs) as [Interval["q"], boolean][]).map(
       ([q, activated]) => (
@@ -171,7 +172,6 @@ export const AlteratedSettingsIntervalButton: FunctionComponent<
           sx={{
             fontVariant: "initial",
             textTransform: "none",
-            width: q === "P" ? 100 : 50,
           }}
           disabled={activated && !canDisable}
         >
