@@ -94,7 +94,7 @@ export const Root = () => {
             "& .MuiLinearProgress-bar": {
               transitionDuration: progressing
                 ? `${answerProgressInterval}ms`
-                : '0s',
+                : "0s",
             },
           }}
         />
