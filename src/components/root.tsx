@@ -12,33 +12,33 @@ import {
   qualitiesAbbrWords,
   qualitiesWords,
 } from "../constants";
-import { useAtomValue, useSetAtom } from "jotai";
+import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import {
   currentIntervalAtom,
   currentNoteAtom,
   drawIntervalAtom,
   drawNoteAtom,
+  expectedNoteAtom,
 } from "../state/board";
-import { getExpectedNote } from "../note";
 import { settingsAtom } from "../state/settings";
 import { NoteMode } from "../state/_default";
+import { answerNoteAtom } from "../state/answer";
 
 export const Root = () => {
   const { mode } = useAtomValue(settingsAtom);
   const currentNote = useAtomValue(currentNoteAtom);
   const currentInterval = useAtomValue(currentIntervalAtom);
+  const expectedNote = useAtomValue(expectedNoteAtom);
 
   const redrawNote = useSetAtom(drawNoteAtom);
   const redrawInterval = useSetAtom(drawIntervalAtom);
-
-  const expectedNote = getExpectedNote(currentNote, currentInterval, mode);
 
   const redraw = useCallback(() => {
     redrawNote();
     redrawInterval();
   }, [redrawNote, redrawInterval]);
 
-  const [answerNote, setAnswerNote] = useState<Note | null>(null);
+  const [answerNote, setAnswerNote] = useAtom(answerNoteAtom);
 
   const [nextDuration, setNextDuration] = useState(2000);
 

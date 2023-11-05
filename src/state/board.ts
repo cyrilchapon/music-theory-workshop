@@ -1,7 +1,13 @@
 import { atom } from "jotai";
 import { settingsAtom } from "./settings";
 import { Interval as TonalInterval, IntervalName } from "tonal";
-import { alteratedNotes, drawNote, isInterval, simpleNotes } from "../note";
+import {
+  alteratedNotes,
+  drawNote,
+  getExpectedNote,
+  isInterval,
+  simpleNotes,
+} from "../note";
 import { draw, memo } from "radash";
 import {
   AlteratedSettingsInterval,
@@ -85,4 +91,13 @@ export const drawIntervalAtom = atom(null, (_get, set) => {
     throw new Error("Drawn interval is null");
   }
   set(currentIntervalAtom, drawnInterval);
+});
+export const expectedNoteAtom = atom((get) => {
+  const { mode } = get(settingsAtom);
+  const currentNote = get(currentNoteAtom);
+  const currentInterval = get(currentIntervalAtom);
+
+  const expectedNote = getExpectedNote(currentNote, currentInterval, mode);
+
+  return expectedNote;
 });
