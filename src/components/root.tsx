@@ -1,10 +1,6 @@
 import { Box, Button, LinearProgress, Stack, Typography } from "@mui/material";
 import Grid2 from "@mui/material/Unstable_Grid2/Grid2";
-import { FunctionComponent, useCallback, useState } from "react";
-import {
-  UseRequestAnimationFrameCallback,
-  useRequestAnimationFrame,
-} from "../hooks/animation-frame";
+import { FunctionComponent, useCallback } from "react";
 import { NoteInput } from "./note-input";
 import { Note, Interval } from "@tonaljs/core";
 import {
@@ -16,13 +12,15 @@ import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import {
   currentIntervalAtom,
   currentNoteAtom,
-  drawIntervalAtom,
-  drawNoteAtom,
   expectedNoteAtom,
 } from "../state/board";
 import { settingsAtom } from "../state/settings";
 import { NoteMode } from "../state/_default";
-import { answerNoteAtom } from "../state/answer";
+import {
+  answerNoteAtom,
+  answerProgressIntervalAtom,
+  skipAnswerNoteAtom,
+} from "../state/answer";
 
 export const Root = () => {
   const { mode } = useAtomValue(settingsAtom);
@@ -30,56 +28,22 @@ export const Root = () => {
   const currentInterval = useAtomValue(currentIntervalAtom);
   const expectedNote = useAtomValue(expectedNoteAtom);
 
-  const redrawNote = useSetAtom(drawNoteAtom);
-  const redrawInterval = useSetAtom(drawIntervalAtom);
-
-  const redraw = useCallback(() => {
-    redrawNote();
-    redrawInterval();
-  }, [redrawNote, redrawInterval]);
-
   const [answerNote, setAnswerNote] = useAtom(answerNoteAtom);
+  const skipNote = useSetAtom(skipAnswerNoteAtom);
+  const answerProgressInterval = useAtomValue(answerProgressIntervalAtom);
 
-  const [nextDuration, setNextDuration] = useState(2000);
-
-  const reset = useCallback(() => {
-    setAnswerNote(null);
-    redraw();
-  }, [setAnswerNote, redraw]);
-
-  const [nextProgress, setNextProgress] = useState(0);
-  const handleTick = useCallback<UseRequestAnimationFrameCallback>(
-    ({ time }) => {
-      const progress = (time / nextDuration) * 100;
-      setNextProgress(progress);
-    },
-    [nextDuration, setNextProgress]
-  );
-
-  const [start, pause, startNext, stopNext] = useRequestAnimationFrame(
-    handleTick,
-    {
-      stopValue: nextDuration,
-      autoStopCb: reset,
-    }
-  );
-
-  const progressing = start && !pause;
+  const progressing = answerProgressInterval != null;
 
   const handleSubmitAnswer = useCallback(
     (note: Note) => {
-      // stopNext();
       setAnswerNote(note);
-      setNextDuration(note != null && note === expectedNote ? 500 : 2000);
-      startNext();
     },
-    [setAnswerNote, startNext, setNextDuration, expectedNote]
+    [setAnswerNote]
   );
 
   const handleSkip = useCallback(() => {
-    stopNext();
-    reset();
-  }, [stopNext, reset]);
+    skipNote();
+  }, [skipNote]);
 
   return (
     <Stack alignItems={"center"} justifyContent={"flex-start"} spacing={3}>
@@ -116,7 +80,7 @@ export const Root = () => {
       <Box alignSelf={"stretch"}>
         <LinearProgress
           variant="determinate"
-          value={progressing ? nextProgress : 0}
+          value={progressing ? 100 : 0}
           color={
             progressing
               ? answerNote === expectedNote
@@ -128,7 +92,9 @@ export const Root = () => {
           }
           sx={{
             "& .MuiLinearProgress-bar": {
-              transition: "none",
+              transitionDuration: progressing
+                ? `${answerProgressInterval}ms`
+                : '0s',
             },
           }}
         />
