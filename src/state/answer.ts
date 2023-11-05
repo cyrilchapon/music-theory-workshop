@@ -11,12 +11,16 @@ export const answerProgressIntervalAtom = atom((get) =>
   get(_answerProgressIntervalAtom)
 );
 
-export const skipAnswerNoteAtom = atom(null, (get, set) => {
+export const stopProgressTimeoutAtom = atom(null, (get, set) => {
   const previousTimeout = get(_answerProgressTimeout);
   if (previousTimeout != null) {
     clearTimeout(previousTimeout);
   }
   set(_answerProgressTimeout, null);
+})
+
+export const skipAnswerNoteAtom = atom(null, (_get, set) => {
+  set(stopProgressTimeoutAtom)
 
   set(_answerNoteAtom, null);
   set(drawNoteAtom);
@@ -29,11 +33,7 @@ export const answerNoteAtom = atom(
     return get(_answerNoteAtom);
   },
   (get, set, note: Note) => {
-    const previousTimeout = get(_answerProgressTimeout);
-    if (previousTimeout != null) {
-      clearTimeout(previousTimeout);
-    }
-    set(_answerProgressTimeout, null);
+    set(stopProgressTimeoutAtom);
 
     const expectedNote = get(expectedNoteAtom);
     const delayToNext = note === expectedNote ? 500 : 2000;

@@ -1,9 +1,10 @@
 import { atom } from "jotai";
 import { atomWithStorage } from "jotai/utils";
 import { Interval as TonalInterval } from "tonal";
-import { drawIntervalAtom, drawNoteAtom, intervalsAtom } from "./board";
+import { intervalsAtom } from "./board";
 import { Settings, settingsDefaultValue } from "./_default";
 import { UnreachableCaseError } from "ts-essentials";
+import { skipAnswerNoteAtom } from "./answer";
 
 export const settingsAtom = atomWithStorage<Settings>(
   "settings",
@@ -15,8 +16,7 @@ export const switchModeAtom = atom(null, (_get, set) => {
     mode: prevSettings.mode === "simple" ? "alterated" : "simple",
   }));
 
-  set(drawNoteAtom);
-  set(drawIntervalAtom);
+  set(skipAnswerNoteAtom);
 });
 export const toggleIntervalAtom = atom(
   null,
@@ -113,7 +113,6 @@ export const toggleIntervalAtom = atom(
       }
     });
 
-    set(drawNoteAtom);
-    set(drawIntervalAtom);
+    set(skipAnswerNoteAtom);
   }
 );
