@@ -11,6 +11,7 @@ import {
 import { draw, memo } from "radash";
 import {
   AlteratedSettingsInterval,
+  NoteMode,
   SimpleSettingsInterval,
   getSettingsDefaultValue,
 } from "./_default";
@@ -43,7 +44,7 @@ const flattenAlteratedSettingsIntervals = memo(
 export const intervalsAtom = atom((get) => {
   const settings = get(settingsAtom);
 
-  if (settings.mode === "simple") {
+  if (settings.mode === NoteMode.Simple) {
     return flattenSimpleSettingsIntervals(settings.simple.intervals);
   } else {
     return flattenAlteratedSettingsIntervals(settings.alterated.intervals);
@@ -52,16 +53,16 @@ export const intervalsAtom = atom((get) => {
 
 export const baseNotesAtom = atom((get) => {
   const settings = get(settingsAtom);
-  return settings.mode === "simple" ? simpleNotes : alteratedNotes;
+  return settings.mode === NoteMode.Simple ? simpleNotes : alteratedNotes;
 });
 
 const initialSettings = getSettingsDefaultValue("settings");
 
 const drawnNote = drawNote(
-  initialSettings.mode === "simple" ? simpleNotes : alteratedNotes
+  initialSettings.mode === NoteMode.Simple ? simpleNotes : alteratedNotes
 );
 const drawnInterval = draw(
-  initialSettings.mode === "simple"
+  initialSettings.mode === NoteMode.Simple
     ? flattenSimpleSettingsIntervals(initialSettings.simple.intervals)
     : flattenAlteratedSettingsIntervals(initialSettings.alterated.intervals)
 );

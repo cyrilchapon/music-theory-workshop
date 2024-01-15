@@ -1,15 +1,21 @@
 import { FunctionComponent, useCallback } from "react";
 import {
+  setModeAtom,
   settingsAtom,
-  switchModeAtom,
   toggleIntervalAtom,
 } from "../state/settings";
 import {
   Box,
   BoxProps,
+  Checkbox,
+  CheckboxProps,
   Divider,
+  FormControl,
   FormControlLabel,
+  FormGroup,
   FormLabel,
+  Radio,
+  RadioGroup,
   Stack,
   Switch,
   SwitchProps,
@@ -25,7 +31,9 @@ import { Interval, IntervalName } from "@tonaljs/core";
 import { useAtomValue, useSetAtom } from "jotai";
 import {
   AlteratedSettingsInterval,
+  NoteMode,
   SimpleSettingsInterval,
+  assertNoteMode,
 } from "../state/_default";
 import { intervalsAtom } from "../state/board";
 
@@ -38,7 +46,7 @@ export const SettingsDrawerBox: FunctionComponent<SettingsDrawerBoxProps> = (
   props
 ) => {
   const settings = useAtomValue(settingsAtom);
-  const switchMode = useSetAtom(switchModeAtom);
+  const setMode = useSetAtom(setModeAtom);
   const toggleInterval = useSetAtom(toggleIntervalAtom);
   const activeIntervals = useAtomValue(intervalsAtom);
 
@@ -51,73 +59,110 @@ export const SettingsDrawerBox: FunctionComponent<SettingsDrawerBoxProps> = (
     [toggleInterval]
   );
 
-  const handleModeChange = useCallback(() => {
-    switchMode();
-  }, [switchMode]);
+  const handleModeChange = useCallback(
+    (_e: React.ChangeEvent<HTMLInputElement>, value: string) => {
+      assertNoteMode(value);
+      setMode(value)
+    },
+    [setMode]
+  );
 
   return (
     <Box {...props}>
       <Stack spacing={2}>
         <Box>
-          <FormControlLabel
-            control={
-              <Switch
-                checked={settings.mode === "alterated"}
-                onChange={handleModeChange}
+          <FormControl>
+            <FormLabel>Mode</FormLabel>
+
+            <RadioGroup
+              value={settings.mode}
+              onChange={handleModeChange}
+            >
+              <FormControlLabel
+                value={NoteMode.Simple}
+                control={<Radio />}
+                label="Simple"
               />
-            }
-            label="Altérations"
-          />
+              <FormControlLabel
+                value={NoteMode.Alterated}
+                control={<Radio />}
+                label="Altérations"
+              />
+            </RadioGroup>
+          </FormControl>
         </Box>
 
         <Divider />
 
         <Stack spacing={2}>
-          {settings.mode === "simple"
-            ? settings.simple.intervals.map((interval) => (
-                <Grid2 container alignItems={"center"} key={interval.num}>
-                  <Grid2 xs={4}>
-                    <FormLabel component="legend">
-                      {
+          {settings.mode === NoteMode.Simple
+            ? (
+              <FormControl component="fieldset" variant="standard">
+                <FormLabel component="legend">Intervales</FormLabel>
+
+                <FormGroup>
+                {
+                  settings.simple.intervals.map((interval) => (
+                    <FormControlLabel
+                      key={interval.num}
+                      control={
+                        <SimpleSettingsIntervalCheckbox
+                          interval={interval}
+                          onToggle={handleToggleInterval}
+                          checked={interval.activated}
+                          disabled={interval.activated && !canDisable}
+                        />
+                      }
+                      label={
                         intervalsWords[
                           interval.num as keyof typeof intervalsWords
                         ]
                       }
-                    </FormLabel>
-                  </Grid2>
-
-                  <Grid2 xs={8}>
-                    <SimpleSettingsIntervalSwitch
-                      interval={interval}
-                      onToggle={handleToggleInterval}
-                      checked={interval.activated}
-                      disabled={interval.activated && !canDisable}
                     />
-                  </Grid2>
-                </Grid2>
-              ))
-            : settings.alterated.intervals.map((interval) => (
-                <Grid2 container alignItems={"center"} key={interval.num}>
-                  <Grid2 xs={4}>
-                    <FormLabel component="legend">
-                      {
-                        intervalsWords[
-                          interval.num as keyof typeof intervalsWords
-                        ]
-                      }
-                    </FormLabel>
-                  </Grid2>
+                  ))
+                }
+                </FormGroup>
+              </FormControl>
+            )
+            : (
+              <>
+                <FormLabel component="legend">Intervales</FormLabel>
 
-                  <Grid2 xs={8} spacing={0}>
-                    <AlteratedSettingsIntervalButton
-                      interval={interval}
-                      onToggle={handleToggleInterval}
-                      canDisable={canDisable}
-                    />
+                {settings.alterated.intervals.map((interval) => (
+                  <Grid2 container alignItems={"center"} key={interval.num}>
+                    <Grid2 xs={4}>
+                      <FormLabel component="legend">
+                        {
+                          intervalsWords[
+                            interval.num as keyof typeof intervalsWords
+                          ]
+                        }
+                      </FormLabel>
+                    </Grid2>
+
+                    <Grid2 xs={8} spacing={0}>
+                      <AlteratedSettingsIntervalButton
+                        interval={interval}
+                        onToggle={handleToggleInterval}
+                        canDisable={canDisable}
+                      />
+                    </Grid2>
                   </Grid2>
-                </Grid2>
-              ))}
+                ))}
+              </>
+            )}
         </Stack>
+
+        <Divider />
+
+        <>
+          <FormLabel>Réponses</FormLabel>
+
+          <FormControlLabel
+            control={<Switch defaultChecked />}
+            label="Mélange"
+          />
+        </>
       </Stack>
     </Box>
   );
@@ -134,6 +179,22 @@ export const SimpleSettingsIntervalSwitch: FunctionComponent<
   SimpleSettingsIntervalSwitchProps
 > = ({ onToggle, interval, ...props }) => (
   <Switch
+    onChange={onToggle.bind(null, `${interval.num}${interval.q}`)}
+    {...props}
+  />
+);
+
+export type SimpleSettingsIntervalCheckboxProps = Omit<
+  CheckboxProps,
+  "onChange"
+> & {
+  onToggle: (intervalName: IntervalName) => void;
+  interval: SimpleSettingsInterval;
+};
+export const SimpleSettingsIntervalCheckbox: FunctionComponent<
+SimpleSettingsIntervalCheckboxProps
+> = ({ onToggle, interval, ...props }) => (
+  <Checkbox
     onChange={onToggle.bind(null, `${interval.num}${interval.q}`)}
     {...props}
   />

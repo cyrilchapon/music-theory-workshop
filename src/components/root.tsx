@@ -117,7 +117,7 @@ const IntervalExpression: FunctionComponent<{
 }> = ({ mode, interval }) => (
   <Typography component="span" fontWeight={"bold"}>
     {intervalsWords[interval.num as keyof typeof intervalsWords]}
-    {mode === "alterated" ? (
+    {mode === NoteMode.Alterated ? (
       <>
         &nbsp;
         {qualitiesWords[interval.q as keyof typeof qualitiesAbbrWords]}

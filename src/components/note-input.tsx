@@ -12,6 +12,7 @@ import { FunctionComponent } from "react";
 import { alteratedInputNotes, simpleInputNotes } from "../note";
 import { useAtomValue } from "jotai";
 import { settingsAtom } from "../state/settings";
+import { NoteMode } from "../state/_default";
 
 export type NoteInputProps = {
   onInput: (note: Note) => void;
@@ -31,7 +32,7 @@ export const NoteInput = ({
   return (
     <Stack spacing={2} alignItems="center">
       <Grid2 container justifyContent={"center"} spacing={2}>
-        {mode === "simple"
+        {mode === NoteMode.Simple
           ? simpleInputNotes.map((note) => (
               <Grid2
                 container

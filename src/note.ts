@@ -89,7 +89,7 @@ export const getExpectedNote = (
   }
 
   const expectedNote =
-    mode === "simple" ? simplify(expectedAlteratedNote) : expectedAlteratedNote;
+    mode === NoteMode.Simple ? simplify(expectedAlteratedNote) : expectedAlteratedNote;
 
   return expectedNote;
 };

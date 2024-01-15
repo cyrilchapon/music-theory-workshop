@@ -2,7 +2,7 @@ import { atom } from "jotai";
 import { atomWithStorage } from "jotai/utils";
 import { Interval as TonalInterval } from "tonal";
 import { intervalsAtom } from "./board";
-import { Settings, settingsDefaultValue } from "./_default";
+import { NoteMode, Settings, settingsDefaultValue } from "./_default";
 import { UnreachableCaseError } from "ts-essentials";
 import { skipAnswerNoteAtom } from "./answer";
 
@@ -13,7 +13,15 @@ export const settingsAtom = atomWithStorage<Settings>(
 export const switchModeAtom = atom(null, (_get, set) => {
   set(settingsAtom, (prevSettings) => ({
     ...prevSettings,
-    mode: prevSettings.mode === "simple" ? "alterated" : "simple",
+    mode: prevSettings.mode === NoteMode.Simple ? NoteMode.Alterated : NoteMode.Simple,
+  }));
+
+  set(skipAnswerNoteAtom);
+});
+export const setModeAtom = atom(null, (_get, set, value: NoteMode) => {
+  set(settingsAtom, (prevSettings) => ({
+    ...prevSettings,
+    mode: value,
   }));
 
   set(skipAnswerNoteAtom);
@@ -41,7 +49,7 @@ export const toggleIntervalAtom = atom(
       }
 
       switch (mode) {
-        case "simple": {
+        case NoteMode.Simple: {
           // If about to deactivate the last one, cancel
           if (
             activeIntervalsCount <= 1 &&
@@ -70,7 +78,7 @@ export const toggleIntervalAtom = atom(
 
           return updatedSettings;
         }
-        case "alterated": {
+        case NoteMode.Alterated: {
           // If about to deactivate the last one, cancel
           if (
             activeIntervalsCount <= 1 &&
